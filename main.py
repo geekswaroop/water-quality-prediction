@@ -10,6 +10,7 @@ import torch.nn.functional as F
 import matplotlib.pyplot as plt 
 import numpy as np
 from keras.utils.np_utils import to_categorical   
+from sklearn.model_selection import train_test_split
 
 from model import *
 from accuracy import get_accuracy
@@ -31,6 +32,7 @@ def parse_arguments():
     parser.add_argument('-e', '--epochs', help='Set number of train epochs', default=500, type=int)
     parser.add_argument('-model', '--model', help='Set Feature extractor', default='classifier1', type=str)
     parser.add_argument('-lr', '--learning_rate', help='Set starting learning rate', default=0.1, type=float)
+    parser.add_argument('-tts', '--train_test_split', help='Set fraction of dataset to be used for testing', default=0.45, type=float)
 
     parser.set_defaults(train=True)
 
@@ -62,6 +64,18 @@ if __name__ == "__main__":
     y = np.asarray(y)
 
     #########################################################
+    ## SPLITTING DATA INTO TRAINING SET AND TESTING SET
+    #########################################################
+
+    if args.train_test_split != 0.0:
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=args.train_test_split, random_state=42, stratify = y)
+        print(X_train.shape, X_test.shape)
+    
+    else:
+        X_train = X_test = X
+        y_train = y_test = y
+
+    #########################################################
     ## MODEL SETTINGS
     #########################################################
 
@@ -71,11 +85,11 @@ if __name__ == "__main__":
     optimizer = torch.optim.SGD(classifier.parameters(), lr=args.learning_rate, momentum=0.9)
 
     # Converting the class labels into one-hot encoding
-    y = to_categorical(y, num_classes=5)
+    y_train = to_categorical(y_train, num_classes=5)
 
     # Converting the data and targets into torch variables
-    x_data = Variable(torch.from_numpy(X))
-    y_data = Variable(torch.from_numpy(y))
+    x_data = Variable(torch.from_numpy(X_train))
+    y_data = Variable(torch.from_numpy(y_train))
 
     #########################################################
     ## TRAINING
@@ -97,9 +111,10 @@ if __name__ == "__main__":
     #########################################################
     # Calculating accuracy by testing on the entire dataset
 
-    y_real = df['water Quality(A/B/C/D/E)'].values
-    y_real = np.unique(y_real, return_inverse=True)[1].tolist()
-    output = classifier(x_data.float())
+    x_test = Variable(torch.from_numpy(X_test))
+
+    y_real = y_test
+    output = classifier(x_test.float())
     y_pred = []
     for y in output:
         index_max = np.argmax(y.detach().numpy())
