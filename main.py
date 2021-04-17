@@ -10,8 +10,9 @@ import numpy as np
 from keras.utils.np_utils import to_categorical   
 
 from model import QualityClassifier
+from accuracy import get_accuracy
 
-df = pd.read_excel (r'water quality.xlsx')
+df = pd.read_excel (r'water-quality.xlsx')
 df = df[['ID', 'SITENAME', 'Mg', 'PH', 'K(Potassium)', 'NITRATE', 'SULPHATE',
        'EC(Electrical Conductivity)', 'Ca(Calcium)', 'Na(Sodium)', 'CARBONATE',
        'BICARBONATE', 'CHLORIDE', 'FLUORIDE', 'SAR(Sodium Absorption Ratio)',
@@ -74,13 +75,10 @@ for y in output:
     index_max = np.argmax(y.detach().numpy())
     y_pred.append(index_max)
 
+
 # print(y_pred)
 # print(y_real)
 
-count = 0
-for i in range(len(y_real)):
-    if y_pred[i] == y_real[i]:
-        count = count + 1
 
-accuracy = (count / len(y_real)) * 100
+accuracy = get_accuracy(y_pred, y_real)
 print("Accuracy = {}%".format(accuracy))
