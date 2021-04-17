@@ -122,3 +122,7 @@ if __name__ == "__main__":
 
     accuracy = get_accuracy(y_pred, y_real)
     print("Accuracy = {}%".format(accuracy))
+
+    # f = open("res.txt", "a")
+    # f.write("{}%\n".format(accuracy))
+    # f.close()
