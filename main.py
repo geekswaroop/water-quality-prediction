@@ -1,5 +1,7 @@
+import os,sys
 import pandas as pd
 import numpy as np
+import argparse
 from torch import nn
 import torch
 from torch import tensor
@@ -9,12 +11,36 @@ import matplotlib.pyplot as plt
 import numpy as np
 from keras.utils.np_utils import to_categorical   
 
-from model import QualityClassifier
+from model import *
 from accuracy import get_accuracy
 
+# Reproducibility
+torch.manual_seed(42)
+
+models = {
+    'classifier1': Classifier1,
+    'classifier2': Classifier2,
+    'classifier3': Classifier3,
+    'classifier4': Classifier4
+}
+
+def parse_arguments():
+    parser = argparse.ArgumentParser(description='Water Quality Analysis')
+
+    # Add more arguments based on requirements later
+    parser.add_argument('-e', '--epochs', help='Set number of train epochs', default=500, type=int)
+    parser.add_argument('-model', '--model', help='Set Feature extractor', default='classifier1', type=str)
+    parser.add_argument('-lr', '--learning_rate', help='Set starting learning rate', default=0.1, type=float)
+
+    parser.set_defaults(train=True)
+
+    args = parser.parse_args()
+    return args
 
 if __name__ == "__main__":
 
+    args = parse_arguments()
+    print("Arguments: ", args)
     #########################################################
     ## DATA PRE PROCESSING
     #########################################################
@@ -40,9 +66,9 @@ if __name__ == "__main__":
     #########################################################
 
     # Initializing the neural network classifier model
-    classifier = QualityClassifier()
+    classifier = models[args.model]()
     criterion = nn.BCELoss()
-    optimizer = torch.optim.SGD(classifier.parameters(), lr=0.1, momentum=0.9)
+    optimizer = torch.optim.SGD(classifier.parameters(), lr=args.learning_rate, momentum=0.9)
 
     # Converting the class labels into one-hot encoding
     y = to_categorical(y, num_classes=5)
@@ -54,11 +80,11 @@ if __name__ == "__main__":
     #########################################################
     ## TRAINING
     #########################################################
-    for epoch in range(500):
+    for epoch in range(args.epochs):
         y_pred = classifier(x_data.float())
         l = criterion(y_pred, y_data)
         optimizer.zero_grad()
-        if epoch % 100 == 0:
+        if epoch % (args.epochs/10) == 0: # Print 10 updates
             print("Epoch: ", epoch, "Loss = ", l.item())
         l.backward()
         optimizer.step()
