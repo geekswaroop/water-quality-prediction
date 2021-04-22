@@ -11,6 +11,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from keras.utils.np_utils import to_categorical   
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix, classification_report
+
 
 from model import *
 from accuracy import get_accuracy
@@ -122,6 +124,10 @@ if __name__ == "__main__":
 
     accuracy = get_accuracy(y_pred, y_real)
     print("Accuracy = {}%".format(accuracy))
+
+    print("Confusion matrix : \n", confusion_matrix(y_real, y_pred))
+    target_names = ['A', 'B', 'C', 'D', 'E']
+    print("Classification Report : \n", classification_report(y_real, y_pred, target_names=target_names, zero_division=0))
 
     # f = open("res.txt", "a")
     # f.write("{}%\n".format(accuracy))
